@@ -51,7 +51,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MANAGER')")
     @GetMapping("/users")
     public ResponseEntity<List<User>> listUsers(){
         var users = userRepository.findAll();
