@@ -1,7 +1,10 @@
 package com.codelab.users.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,6 +28,15 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @ManyToOne
+    @JoinColumn(name = "manager_id")
+    @JsonBackReference
+    private User manager;
+
+    @OneToMany(mappedBy = "manager")
+    @JsonManagedReference
+    private List<User> managedUsers;
 
     public UUID getUserId() {
         return userId;
@@ -56,5 +68,21 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public User getManager() {
+        return manager;
+    }
+
+    public void setManager(User manager) {
+        this.manager = manager;
+    }
+
+    public List<User> getManagedUsers() {
+        return managedUsers;
+    }
+
+    public void setManagedUsers(List<User> managedUsers) {
+        this.managedUsers = managedUsers;
     }
 }
