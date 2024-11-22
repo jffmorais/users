@@ -1,5 +1,6 @@
 package com.codelab.users.entities;
 
+import com.codelab.users.dto.UserResponse;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -84,5 +85,9 @@ public class User {
 
     public void setManagedUsers(List<User> managedUsers) {
         this.managedUsers = managedUsers;
+    }
+
+    public UserResponse toUserResponse(){
+        return new UserResponse(this.userId.toString(), this.email);
     }
 }

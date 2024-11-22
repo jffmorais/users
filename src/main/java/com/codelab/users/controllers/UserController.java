@@ -1,21 +1,21 @@
 package com.codelab.users.controllers;
 
 import com.codelab.users.dto.CreateUserRequest;
+import com.codelab.users.dto.UserResponse;
 import com.codelab.users.entities.User;
 import com.codelab.users.repositories.RoleRepository;
 import com.codelab.users.repositories.UserRepository;
+import com.codelab.users.services.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -24,11 +24,16 @@ public class UserController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository, RoleRepository roleRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserController(UserRepository userRepository,
+                          RoleRepository roleRepository,
+                          BCryptPasswordEncoder bCryptPasswordEncoder,
+                          UserService userService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.userService = userService;
     }
 
     @PostMapping("/users")
@@ -53,8 +58,21 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MANAGER')")
     @GetMapping("/users")
-    public ResponseEntity<List<User>> listUsers(){
-        var users = userRepository.findAll();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<PagedModel<UserResponse>> listUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "email") String sortBy,
+            @RequestParam(defaultValue = "true") boolean ascending
+    ){
+        Page<UserResponse> usersPage = userService.getAllUsers(page, size, sortBy, ascending);
+        PagedModel<UserResponse> pagedModel = PagedModel.of(
+                usersPage.getContent(),
+                new PagedModel.PageMetadata(
+                        usersPage.getSize(),
+                        usersPage.getNumber(),
+                        usersPage.getTotalElements()
+                )
+        );
+        return ResponseEntity.ok(pagedModel);
     }
 }
