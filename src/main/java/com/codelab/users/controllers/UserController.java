@@ -6,7 +6,6 @@ import com.codelab.users.entities.User;
 import com.codelab.users.repositories.RoleRepository;
 import com.codelab.users.repositories.UserRepository;
 import com.codelab.users.services.UserService;
-import org.springframework.data.domain.Page;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,15 +63,16 @@ public class UserController {
             @RequestParam(defaultValue = "email") String sortBy,
             @RequestParam(defaultValue = "true") boolean ascending
     ){
-        Page<UserResponse> usersPage = userService.getAllUsers(page, size, sortBy, ascending);
-        PagedModel<UserResponse> pagedModel = PagedModel.of(
-                usersPage.getContent(),
-                new PagedModel.PageMetadata(
-                        usersPage.getSize(),
-                        usersPage.getNumber(),
-                        usersPage.getTotalElements()
-                )
-        );
-        return ResponseEntity.ok(pagedModel);
+        PagedModel<UserResponse> usersPage = userService.getAllUsers(page, size, sortBy, ascending);
+        return ResponseEntity.ok(usersPage);
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MANAGER') or hasAuthority('SCOPE_BASIC')")
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<UserResponse> getUser(
+            @PathVariable String userId
+    ){
+        UserResponse user = userService.getUser(userId);
+        return ResponseEntity.ok(user);
     }
 }
