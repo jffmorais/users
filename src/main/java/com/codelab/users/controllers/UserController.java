@@ -17,7 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Set;
 
-@RestController
+@CrossOrigin(origins = "http://localhost:4200")
+@RestController()
+@RequestMapping("/api")
 public class UserController {
 
     private final UserRepository userRepository;

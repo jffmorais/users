@@ -4,20 +4,19 @@ import com.codelab.users.dto.LoginRequest;
 import com.codelab.users.dto.LoginResponse;
 import com.codelab.users.entities.Role;
 import com.codelab.users.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api")
 public class TokenController {
 
     private final JwtEncoder jwtEncoder;
@@ -34,8 +33,12 @@ public class TokenController {
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         var user = userRepository.findByEmail(loginRequest.email());
 
-        if(user.isEmpty() || !bCryptPasswordEncoder.matches(loginRequest.password(), user.get().getPassword())){
-            throw new BadCredentialsException("Email or password invalid");
+        if(user.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        if(!bCryptPasswordEncoder.matches(loginRequest.password(), user.get().getPassword())){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         var now = Instant.now();
